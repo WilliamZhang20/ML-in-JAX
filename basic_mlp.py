@@ -66,7 +66,6 @@ def update(params, x, y):
     return [(w - step_size * dw, b-step_size * db)
             for (w, b), (dw, db) in zip(params, grads)]
 
-import numpy as np
 from jax.tree_util import tree_map
 from torch.utils import data
 from torchvision.datasets import MNIST
