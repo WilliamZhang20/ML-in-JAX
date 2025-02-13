@@ -56,10 +56,13 @@ test_labels = one_hot(jnp.array(mnist_dataset_test.targets), n_targets)
 
 training_generator = data.DataLoader(mnist_dataset, batch_size=batch_size, shuffle=True)
 
-from optimized_sgd import sgd_momentum
+from optimized_sgd import sgd_momentum, rmsprop
 
-# Initialize velocities - a matrix
+# Initialize velocities - list of tuples of matrices
 velocities = [(jnp.zeros_like(w), jnp.zeros_like(b)) for w, b in params]
+
+# Initialize RMSprop cache (same shape as params, initialized to zeros)
+cache = [(jnp.zeros_like(w), jnp.zeros_like(b)) for w, b in params]
 
 # training loop
 import time
