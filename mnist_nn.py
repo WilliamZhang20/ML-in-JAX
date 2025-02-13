@@ -69,7 +69,7 @@ for epoch in range(num_epochs): # 10 epochs
     for x, y in training_generator:
         x = jnp.array(x)
         y = one_hot(jnp.array(y), n_targets)
-        params = update(params, x, y, step_size=step_size)
+        params, velocities = sgd_momentum(params, x, y, velocities, step_size, momentum=0.9)
     epoch_time = time.time() - start_time
 
     train_acc = accuracy(params, train_images, train_labels)

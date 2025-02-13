@@ -16,8 +16,13 @@ Applying optimizations to gradient descent such as:
 @jit
 def sgd_momentum(params, x, y, velocities, step_size, momentum=0.9):
     grads = grad(loss)(params, x, y)
-    new_velocities = [(momentum * v + step_size * g) for v, g in zip(velocities, grads)]
-    new_params = [(w - v_w, b - v_b) for (w, b), (v_w, v_b) in zip(params, new_velocities)]
+    new_velocities = [
+        (momentum * v_w + step_size * g_w, momentum * v_b + step_size * g_b)
+        for (v_w, v_b), (g_w, g_b) in zip(velocities, grads)
+    ]
+    new_params = [
+        (w - v_w, b - v_b) for (w, b), (v_w, v_b) in zip(params, new_velocities)
+    ]
     return new_params, new_velocities
 
 @jit
