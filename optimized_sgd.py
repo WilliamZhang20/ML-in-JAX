@@ -73,3 +73,19 @@ def adam(params, x, y, m, v, t, step_size=0.001, beta1=0.9, beta2=0.98, epsilon=
         for (w, b), (m_hat_w, m_hat_b), (v_hat_w, v_hat_b) in zip(params, m_hat, v_hat)
     ]
     return new_params, new_m, new_v, t
+
+@jit
+def nesterov(params, x, y, v, step_size=0.001, momentum=0.9):
+    lookahead = [
+        (w - momentum * v_w, b - momentum * v_b)
+        for (w, b), (v_w, v_b) in zip(params, v)
+    ]
+    grads = grad(loss)(lookahead, x, y)
+    new_v = [
+        (momentum * v_w + step_size * g_w, momentum * v_b + step_size * g_b)
+        for (v_w, v_b), (g_w, g_b) in zip(v, grads)
+    ]
+    new_params = [
+        (w - v_w, b - v_b) for (w, b), (v_w, v_b) in zip(params, new_v)
+    ]
+    return new_params, new_v

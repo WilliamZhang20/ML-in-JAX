@@ -18,7 +18,7 @@ def init_network_params(sizes, key):
     return [random_layer_params(m, n, k) for m, n, k in zip(sizes[:-1], sizes[1:], keys)]
 
 layer_sizes = [784, 512, 512, 256, 10]
-step_size = 0.005
+step_size = 0.0015
 num_epochs = 10
 batch_size = 128 # for mini-batched GD
 n_targets = 10
