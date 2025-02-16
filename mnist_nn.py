@@ -18,7 +18,7 @@ def init_network_params(sizes, key):
     return [random_layer_params(m, n, k) for m, n, k in zip(sizes[:-1], sizes[1:], keys)]
 
 layer_sizes = [784, 512, 512, 256, 10]
-step_size = 0.0015
+step_size = 0.005
 num_epochs = 10
 batch_size = 128 # for mini-batched GD
 n_targets = 10
@@ -51,7 +51,7 @@ test_labels = one_hot(jnp.array(mnist_dataset_test.targets), n_targets)
 
 training_generator = data.DataLoader(mnist_dataset, batch_size=batch_size, shuffle=True)
 
-from optimized_sgd import sgd_momentum, rmsprop, adam
+from optimized_sgd import sgd_momentum, rmsprop, adam, nesterov
 from train_utils import add_noise
 
 # Initialize velocities - list of tuples of matrices
@@ -80,11 +80,11 @@ for epoch in range(num_epochs): # 10 epochs
         x = jnp.array(x)
 
         # Generate a new key for each batch to ensure different noise
-        rng_key, subkey = random.split(rng_key)
-        x_noisy = add_noise(x, noise_std, subkey)  # Apply Gaussian noise
+        # rng_key, subkey = random.split(rng_key)
+        # x_noisy = add_noise(x, noise_std, subkey)  # Apply Gaussian noise
 
         y = one_hot(jnp.array(y), n_targets)
-        params, m, v, t = adam(params, x_noisy, y, m, v, t, step_size)
+        params, velocities = nesterov(params, x, y, velocities, step_size)
     epoch_time = time.time() - start_time
 
     train_acc = accuracy(params, train_images, train_labels)

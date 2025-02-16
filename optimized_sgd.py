@@ -76,11 +76,11 @@ def adam(params, x, y, m, v, t, step_size=0.001, beta1=0.9, beta2=0.98, epsilon=
 
 @jit
 def nesterov(params, x, y, v, step_size=0.001, momentum=0.9):
-    lookahead = [
+    lookahead = [ # lookahead guess given velocities!
         (w - momentum * v_w, b - momentum * v_b)
         for (w, b), (v_w, v_b) in zip(params, v)
     ]
-    grads = grad(loss)(lookahead, x, y)
+    grads = grad(loss)(lookahead, x, y) # gradient with respect to lookahead prediction - so accelerated convergence!
     new_v = [
         (momentum * v_w + step_size * g_w, momentum * v_b + step_size * g_b)
         for (v_w, v_b), (g_w, g_b) in zip(v, grads)
