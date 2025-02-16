@@ -17,13 +17,12 @@ def init_network_params(sizes, key):
     keys = random.split(key, len(sizes))
     return [random_layer_params(m, n, k) for m, n, k in zip(sizes[:-1], sizes[1:], keys)]
 
-layer_sizes = [784, 512, 512, 10]
-step_size = 0.01
+layer_sizes = [784, 512, 512, 256, 10]
+step_size = 0.005
 num_epochs = 10
 batch_size = 128 # for mini-batched GD
 n_targets = 10
 params = init_network_params(layer_sizes, random.key(0))
-
 
 def one_hot(x, k, dtype=jnp.float32):
     """create one-hot encoding of x of size k"""
@@ -34,13 +33,9 @@ def accuracy(params, images, targets):
     predicted_class = jnp.argmax(batched_predict(params, images), axis=1)
     return jnp.mean(predicted_class == target_class)
 
-from jax.tree_util import tree_map
 from torch.utils import data
 from torchvision.datasets import MNIST
 import torchvision.transforms as transforms
-
-def numpy_collate(batch):
-    return tree_map(np.asarray, data)
 
 transform = transforms.Compose([transforms.Lambda(lambda x: np.ravel(np.array(x, dtype=np.float32)))])
 
@@ -56,7 +51,8 @@ test_labels = one_hot(jnp.array(mnist_dataset_test.targets), n_targets)
 
 training_generator = data.DataLoader(mnist_dataset, batch_size=batch_size, shuffle=True)
 
-from optimized_sgd import sgd_momentum, rmsprop
+from optimized_sgd import sgd_momentum, rmsprop, adam
+from train_utils import add_noise
 
 # Initialize velocities - list of tuples of matrices
 velocities = [(jnp.zeros_like(w), jnp.zeros_like(b)) for w, b in params]
@@ -64,15 +60,31 @@ velocities = [(jnp.zeros_like(w), jnp.zeros_like(b)) for w, b in params]
 # Initialize RMSprop cache (same shape as params, initialized to zeros)
 cache = [(jnp.zeros_like(w), jnp.zeros_like(b)) for w, b in params]
 
+# Initialize first moment (m) and second moment (v) for Adam
+m = [(jnp.zeros_like(w), jnp.zeros_like(b)) for w, b in params]
+v = [(jnp.zeros_like(w), jnp.zeros_like(b)) for w, b in params]
+t = 0  # Time step counter
+
 # training loop
 import time
 
+# Fuzzing data for regularization
+initial_noise_std = 0.05  # Adjust as needed
+final_noise_std = 0.01  # Reduce over time
+rng_key = random.PRNGKey(42)  # Fixed seed for reproducibility
+
 for epoch in range(num_epochs): # 10 epochs
     start_time = time.time()
+    noise_std = initial_noise_std * (final_noise_std / initial_noise_std) ** (epoch / num_epochs)
     for x, y in training_generator:
         x = jnp.array(x)
+
+        # Generate a new key for each batch to ensure different noise
+        rng_key, subkey = random.split(rng_key)
+        x_noisy = add_noise(x, noise_std, subkey)  # Apply Gaussian noise
+
         y = one_hot(jnp.array(y), n_targets)
-        params, velocities = sgd_momentum(params, x, y, velocities, step_size, momentum=0.9)
+        params, m, v, t = adam(params, x_noisy, y, m, v, t, step_size)
     epoch_time = time.time() - start_time
 
     train_acc = accuracy(params, train_images, train_labels)

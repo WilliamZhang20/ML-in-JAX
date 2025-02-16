@@ -26,7 +26,7 @@ def sgd_momentum(params, x, y, velocities, step_size, momentum=0.9):
     return new_params, new_velocities
 
 @jit
-def rmsprop(params, x, y, squared_grads, step_size=0.01, decay=0.9, epsilon=1e-8):
+def rmsprop(params, x, y, squared_grads, step_size=0.01, decay=0.88, epsilon=1e-8):
     grads = grad(loss)(params, x, y)
 
     new_squared_grads = [ # also considered to be the second moment from statistics
@@ -41,3 +41,35 @@ def rmsprop(params, x, y, squared_grads, step_size=0.01, decay=0.9, epsilon=1e-8
     ]
 
     return new_params, new_squared_grads
+
+@jit
+def adam(params, x, y, m, v, t, step_size=0.001, beta1=0.9, beta2=0.98, epsilon=1e-10):
+    grads = grad(loss)(params, x, y)
+    # t: timestep (to help with bias correction)
+    t += 1
+    # Update biased first moment estimate
+    new_m = [
+        (beta1 * m_w + (1 - beta1) * g_w, beta1 * m_b + (1 - beta1) * g_b)
+        for (m_w, m_b), (g_w, g_b) in zip(m, grads)
+    ]
+    # Update biased second moment estimate
+    new_v = [
+        (beta2 * v_w + (1 - beta2) * (g_w ** 2), beta2 * v_b + (1 - beta2) * (g_b ** 2))
+        for (v_w, v_b), (g_w, g_b) in zip(v, grads)
+    ]
+    # Bias correction
+    m_hat = [
+        (m_w / (1 - beta1**t), m_b / (1 - beta1**t))
+        for m_w, m_b in new_m
+    ]
+    v_hat = [
+        (v_w / (1 - beta2**t), v_b / (1 - beta2**t))
+        for v_w, v_b in new_v
+    ]
+    # Update parameters using corrected moments
+    new_params = [
+        (w - step_size * m_hat_w / (jnp.sqrt(v_hat_w) + epsilon),
+         b - step_size * m_hat_b / (jnp.sqrt(v_hat_b) + epsilon))
+        for (w, b), (m_hat_w, m_hat_b), (v_hat_w, v_hat_b) in zip(params, m_hat, v_hat)
+    ]
+    return new_params, new_m, new_v, t
