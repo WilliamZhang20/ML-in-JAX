@@ -27,12 +27,12 @@ The RMSProp algorithm maintains an average of the second moment (variance) of gr
 
 Adam (Adaptive Moments) combines both momentum and RMSProp. Its results were similarly disappointing, as it failed to reach high accuracy at the end of training.
 
-Then I guessed something, which I realize was also true. The learning rate was too high. Adam adaptively scales the learning rate, by dividing it over a small number. There was no need to amplify it myself. 
+Then I guessed something, which I realizeed is also proven to be true. The learning rate was too high. Adam adaptively scales the learning rate, by dividing it over a small number. There was no need to amplify it myself. 
 
 Mathematically, the update of parameters (similar to RMSProp) goes like: 
 
 $$
-{\theta}_{t+1} = {\theta}_{t} - \frac{\alpha \cdot \hat{m_t}}{\sqrt{\hat{v_t}}  + \epsilon}
+\theta_{t+1} = \theta_t - \frac{\alpha \cdot \hat{m_t}}{\sqrt{\hat{v_t}}  + \epsilon}
 $$
 
 So it was better to keep the learning rate around 0.001, which then yielded around 98% accuracy again!
