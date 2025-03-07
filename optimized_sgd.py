@@ -43,7 +43,7 @@ def rmsprop(params, x, y, squared_grads, step_size=0.01, decay=0.88, epsilon=1e-
     return new_params, new_squared_grads
 
 @jit
-def adam(params, x, y, m, v, t, step_size=0.001, beta1=0.9, beta2=0.98, epsilon=1e-10):
+def adam(params, x, y, m, v, t, step_size=0.001, beta1=0.9, beta2=0.9, epsilon=1e-9):
     grads = grad(loss)(params, x, y)
     # t: timestep (to help with bias correction)
     t += 1
