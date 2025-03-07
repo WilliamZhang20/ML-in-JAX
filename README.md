@@ -25,9 +25,9 @@ After training on momentum with a learning rate of 0.01, I obtained a training a
 
 The RMSProp algorithm maintains an average of the second moment (variance) of gradients. However, I found it to be very hard to have the same training acceleration as momentum or any future algorithms...I need to do more work on it.
 
-Adam (Adaptive Moments) combines both momentum and RMSProp. Its results were similarly disappointing, as it failed to reach high accuracy at the end of training.
+Adam (Adaptive Moments) combines both momentum and RMSProp. I managed to use it to reach up to 98.6% training accuracy by tuning the learning rate low to 0.001, while it was higher for pure Momentum at ~0.01.
 
-Then I guessed something, which I realizeed is also proven to be true. The learning rate was too high. Adam adaptively scales the learning rate, by dividing it over a small number. There was no need to amplify it myself. 
+This is because I guessed something that is also proven to be true. The learning rate for Adam has to be low. Adam adaptively scales the learning rate, by dividing it over a small number. There was no need to amplify it myself. 
 
 Mathematically, the update of parameters (similar to RMSProp) goes like: 
 
@@ -51,3 +51,5 @@ v_t = \beta v_{t-1} + (1 - \beta) \nabla J(\theta_t + \beta v_{t-1})
 $$
 
 After training *only* 10 epochs on a learning rate of 0.01, I achieved the best accuracy of 99.97% the on training dataset, and 98.26% on the cross-validating test dataset.
+
+If I increased epochs to 15, it would reach 99.99% accuracy on the training set, and about 98.5% on test set.
