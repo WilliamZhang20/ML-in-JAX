@@ -7,6 +7,9 @@ import jax.numpy as jnp
 
 from jax.scipy.special import logsumexp
 
+def regularized_loss(params, images, targets, l1_lambda):
+    return loss(params, images, targets) + l1_reg(params, l1_lambda) # lambda around 1e-4 or 1e-5 works well
+
 @jit # update conducting gradient descent
 def update(params, x, y, step_size):
     grads = grad(loss)(params, x, y)
@@ -18,8 +21,8 @@ def relu(x):
 
 def predict(params, image):
     activations = image
-    for w, b in params[:-1]:
-        outputs = jnp.dot(w, activations) + b
+    for w, b in params[:-1]: # Forward Propagation through the neural network
+        outputs = jnp.dot(w, activations) + b # <- Application of each layer's linear transformation
         activations = relu(outputs)
 
     final_w, final_b = params[-1]
@@ -36,10 +39,16 @@ def dropout(x, rate, key=None, training=True):
         x = jnp.multiply(x, mask) / keep_prob
     return x
 
+def l1_reg(params, l1_lambda):
+    l1_reg = 0
+    for w, _ in params:
+        l1_reg += jnp.sum(jnp.abs(w))
+    l1_reg_term = l1_lambda * l1_reg
+    return l1_reg_term
+
 def loss(params, images, targets):
     preds = batched_predict(params, images)
     return -jnp.mean(preds*targets) # jnp.mean() is final step of cross-entropy loss
-
 
 def add_noise(x, noise_std, rng_key): 
     """

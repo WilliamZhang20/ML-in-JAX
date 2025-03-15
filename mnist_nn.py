@@ -18,8 +18,8 @@ def init_network_params(sizes, key):
     return [random_layer_params(m, n, k) for m, n, k in zip(sizes[:-1], sizes[1:], keys)]
 
 layer_sizes = [784, 512, 256, 10]
-step_size = 0.03 # learning rate
-num_epochs = 15
+step_size = 0.01 # learning rate
+num_epochs = 20
 batch_size = 128 # for mini-batched GD
 n_targets = 10
 params = init_network_params(layer_sizes, random.key(0))
@@ -69,7 +69,7 @@ t = 0  # Time step counter
 import time
 
 # Fuzzing data for regularization
-initial_noise_std = 0.03  # Adjust as needed
+initial_noise_std = 0.015  # Adjust as needed
 final_noise_std = 0.01  # Reduce over time
 rng_key = random.PRNGKey(42)  # Fixed seed for reproducibility
 
@@ -80,8 +80,8 @@ for epoch in range(num_epochs): # 10 epochs
         x = jnp.array(x)
 
         # Generate a new key for each batch to ensure different noise
-        # rng_key, subkey = random.split(rng_key)
-        # x_noisy = add_noise(x, noise_std, subkey)  # Apply Gaussian noise
+        #rng_key, subkey = random.split(rng_key)
+        #x_noisy = add_noise(x, noise_std, subkey)  # Apply Gaussian noise
 
         y = one_hot(jnp.array(y), n_targets)
         params, velocities = nesterov(params, x, y, velocities, step_size)

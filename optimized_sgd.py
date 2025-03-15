@@ -2,7 +2,7 @@ import numpy as np
 from jax import grad, jit
 import jax
 import jax.numpy as jnp
-from train_utils import loss # for now, is cross entropy loss!
+from train_utils import loss, regularized_loss # for now, is cross entropy loss!
 
 """
 Applying optimizations to gradient descent such as:
